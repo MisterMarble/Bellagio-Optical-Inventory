@@ -211,6 +211,15 @@ dialog header{
   border-radius:8px;
   background:#000;
 }
+
+/* FORCE VIDEO TO VERTICAL ORIENTATION */
+.scanner video {
+  transform: rotate(90deg);
+  object-fit: cover;
+  width: 100vh;
+  height: 100vw;
+}
+
 .mask{
   position:absolute;
   inset:0;
