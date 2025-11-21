@@ -212,32 +212,32 @@ dialog header{
   background:#000;
 }
 
-/* FORCE VIDEO TO VERTICAL ORIENTATION */
-.scanner video {
-  transform: rotate(90deg);
-  object-fit: cover;
-  width: 100vh;
-  height: 100vw;
-}
+/* ——————————————————————— */
+/* ROTATE ONLY THE MASK + ROI */
+/* ——————————————————————— */
 
-.mask{
+.mask {
   position:absolute;
   inset:0;
   pointer-events:none;
+  transform: rotate(90deg);
+  transform-origin: center;
 }
+
 #roi {
   position: absolute;
-  width: 40vw;          /* 40% of screen width */
-  height: 70vw;         /* 70% of screen width – tall rectangle */
+  width: 70vw;     /* reversed because the mask is rotated */
+  height: 40vw;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);  
+  transform: translate(-50%, -50%);
   border: 2px solid #fff;
   border-radius: 8px;
   box-shadow:
     0 0 0 9999px rgba(0,0,0,.55),
     0 0 10px rgba(255,255,255,.7) inset;  
 }
+
 .row{
   display:flex;
   justify-content:flex-end;
@@ -251,6 +251,7 @@ menu{
   margin-top:10px;
   padding:0;
 }
+
 @media (max-width:600px){
   header{
     flex-direction:column;
@@ -262,9 +263,11 @@ menu{
   .grid{
     grid-template-columns:1fr;
   }
+
+  /* mobile keeps the same vertical orientation */
   #roi{
-    width:40vw;
-    height:70vw;
-    transform: translate(-50%, -50%) rotate(90deg);
+    width:70vw;
+    height:40vw;
+    transform: translate(-50%, -50%);
   }
 }
