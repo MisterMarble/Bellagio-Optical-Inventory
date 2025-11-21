@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bellagio Stock Check</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="title-block">
+    <h1>Bellagio Stock Check</h1>
+    <p class="subtitle">Consignment inventory with camera label matching</p>
+  </div>
+  <div class="header-right">
+    <div id="counters">
+      <span id="countTotal">Total: 0</span>
+      <span id="countAvailable">Available: 0</span>
+      <span id="countUsed">Used: 0</span>
+      <span id="countSeen">Seen: 0</span>
+      <span id="countMissing">Missing: 0</span>
+    </div>
+    <div class="actions">
+      <button id="btnImport">Import CSV</button>
+      <button id="btnScan">Scan Label</button>
+      <button id="btnManual">Add Manually</button>
+      <button id="btnExport">Export CSV</button>
+      <button id="btnClear" class="ghost">Clear All</button>
+      <input type="file" id="fileImport" accept=".csv,text/csv" hidden>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="filters">
+    <div class="filter-row">
+      <label>
+        Batch
+        <input id="fltBatch" placeholder="E28550/8092">
+      </label>
+      <label>
+        Slab #
+        <input id="fltSlab" placeholder="00925">
+      </label>
+      <label>
+        Material
+        <input id="fltMaterial" placeholder="Apollo Jumbo">
+      </label>
+      <label>
+        Status
+        <select id="fltStatus">
+          <option value="">All</option>
+          <option value="available">Available</option>
+          <option value="used">Used</option>
+          <option value="seen">Seen</option>
+          <option value="missing">Missing</option>
+        </select>
+      </label>
+      <button id="btnClearFilters" class="ghost small">Clear filters</button>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>Slab #</th>
+          <th>Batch</th>
+          <th>Material</th>
+          <th>Dimensions</th>
+          <th>Thickness (mm)</th>
+          <th>Status</th>
+          <th>Seen</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p id="emptyState" class="muted">
+      No slabs loaded yet.
+      The app will load <strong>data/slabs.csv</strong> automatically on first run.
+      You can also import a new CSV at any time.
+    </p>
+  </section>
+</main>
+
+<dialog id="scanModal">
+  <header><h3>Scan label</h3></header>
+  <div class="scanner">
+    <video id="scanVideo" autoplay playsinline></video>
+    <div class="mask"><div id="roi"></div></div>
+  </div>
+  <div class="row">
+    <button type="button" id="btnTorch">Torch</button>
+    <button type="button" id="btnCapture">Capture</button>
+    <button type="button" class="ghost" id="btnCloseScan">Cancel</button>
+  </div>
+  <canvas id="scanCanvas" hidden></canvas>
+</dialog>
+
+<dialog id="confirmModal">
+  <header><h3>Match result</h3></header>
+  <div id="ocrSummary" class="muted small"></div>
+  <form id="confirmForm" method="dialog">
+    <div class="grid">
+      <label>Combined ID
+        <input id="cfCombined" name="combined_id" readonly>
+      </label>
+      <label>Slab number
+        <input id="cfSlab" name="slab_number" readonly>
+      </label>
+      <label>Batch number
+        <input id="cfBatchNo" name="batch_number" readonly>
+      </label>
+      <label>Material
+        <input id="cfMaterial" name="material" readonly>
+      </label>
+      <label>Dimensions
+        <input id="cfDims" name="dimensions" readonly>
+      </label>
+      <label>Thickness (mm)
+        <input id="cfThick" name="thickness_mm" readonly>
+      </label>
+      <fieldset class="status">
+        <legend>Status</legend>
+        <label><input type="radio" name="status" value="available" checked> Available</label>
+        <label><input type="radio" name="status" value="used"> Used</label>
+      </fieldset>
+    </div>
+
+    <input type="hidden" id="cfRaw" name="raw_ocr_text">
+    <input type="hidden" id="cfConf" name="ocr_confidence">
+
+    <menu>
+      <button type="button" class="ghost" id="btnCancelConfirm">Cancel</button>
+      <button id="btnSaveOCR">Confirm &amp; mark as seen</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="manualModal">
+  <header><h3>Add slab manually</h3></header>
+  <form id="manualForm" method="dialog">
+    <p class="muted small">
+      Use this only for slabs that are <strong>not present</strong> in the original CSV file.
+      For normal checks, always use <strong>Scan Label</strong>.
+    </p>
+    <div class="grid">
+      <label>Combined ID
+        <input id="mCombined" name="combined_id" required placeholder="00925/6217">
+      </label>
+      <label>Slab number
+        <input id="mSlab" name="slab_number" required>
+      </label>
+      <label>Batch number
+        <input id="mBatchNo" name="batch_number">
+      </label>
+      <label>Material
+        <input id="mMaterial" name="material" list="materialList">
+      </label>
+      <label>Dimensions (WxH)
+        <input id="mDims" name="dimensions" placeholder="3200x1600">
+      </label>
+      <label>Thickness (mm)
+        <input id="mThick" name="thickness_mm" inputmode="numeric">
+      </label>
+      <fieldset class="status">
+        <legend>Status</legend>
+        <label><input type="radio" name="status" value="available" checked> Available</label>
+        <label><input type="radio" name="status" value="used"> Used</label>
+      </fieldset>
+    </div>
+    <menu>
+      <button type="button" class="ghost" id="btnCancelManual">Cancel</button>
+      <button id="btnSaveManual">Save</button>
+    </menu>
+  </form>
+</dialog>
+
+<datalist id="materialList"></datalist>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
+</body>
+</html>
