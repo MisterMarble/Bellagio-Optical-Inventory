@@ -265,5 +265,6 @@ menu{
   #roi{
     width:40vw;
     height:70vw;
+    transform: translate(-50%, -50%) rotate(90deg);
   }
 }
