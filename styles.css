@@ -231,7 +231,7 @@ dialog header{
   height: 70vw;         /* 70% of screen width – tall rectangle */
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(90deg);  
   border: 2px solid #fff;
   border-radius: 8px;
   box-shadow:
